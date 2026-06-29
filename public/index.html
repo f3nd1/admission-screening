@@ -13,135 +13,265 @@
           <p class="eyebrow">United Ceres College</p>
           <h1>Admission Eligibility Checker</h1>
           <p class="hero-copy">
-            Upload evidence, extract applicant facts, and apply transparent MER rules
+            AI-assisted evidence extraction, local reference files, and editable MER settings
             for admissions screening.
           </p>
         </div>
-        <div class="status-card" id="apiStatus">Checking OpenAI configuration...</div>
+        <div class="status-card" id="apiStatus">Checking configuration...</div>
       </header>
 
-      <main class="layout">
-        <section class="panel form-panel">
-          <div class="panel-head">
-            <h2>Applicant Intake</h2>
-            <div class="actions-row">
-              <button id="loadMockButton" type="button" class="secondary">Load Mock Data</button>
-              <button id="submitButton" type="button">Run Assessment</button>
-            </div>
+      <nav class="top-nav">
+        <button class="nav-tab active" data-view="screeningView" type="button">Screening</button>
+        <button class="nav-tab" data-view="settingsView" type="button">AI Settings</button>
+        <button class="nav-tab" data-view="referencesView" type="button">Reference MD Files</button>
+        <button class="nav-tab" data-view="coursesView" type="button">Courses &amp; MER</button>
+      </nav>
+
+      <main class="view-stack">
+        <section id="screeningView" class="view active">
+          <div class="layout">
+            <section class="panel form-panel">
+              <div class="panel-head">
+                <h2>Applicant Intake</h2>
+                <div class="actions-row">
+                  <button id="loadMockButton" type="button" class="secondary">Load Mock Data</button>
+                  <button id="submitButton" type="button">Run Assessment</button>
+                </div>
+              </div>
+
+              <form id="assessmentForm">
+                <div class="grid two">
+                  <label>
+                    Applicant Name
+                    <input name="name" type="text" placeholder="Full name" />
+                  </label>
+                  <label>
+                    Age
+                    <input name="age" type="number" min="0" placeholder="Age" />
+                  </label>
+                </div>
+
+                <div class="grid two">
+                  <label>
+                    Country
+                    <input name="country" type="text" placeholder="Country / education system" />
+                  </label>
+                  <label>
+                    Course Selected
+                    <select name="courseId" id="courseSelect"></select>
+                  </label>
+                </div>
+
+                <label>
+                  Staff Notes
+                  <textarea name="notes" rows="3" placeholder="Internal notes"></textarea>
+                </label>
+
+                <label>
+                  Written Application Text
+                  <textarea
+                    name="applicationText"
+                    rows="5"
+                    placeholder="Paste applicant statement, transcript text, or manually extracted document text"
+                  ></textarea>
+                </label>
+
+                <label class="upload-box">
+                  <span>Upload Files</span>
+                  <input id="fileInput" type="file" multiple accept=".pdf,image/*,.txt,.doc,.docx" />
+                  <small>Upload in multiple rounds if needed. Supported for text extraction: PDF, JPG/PNG, and text files.</small>
+                </label>
+
+                <div id="fileList" class="file-list empty">No files selected.</div>
+
+                <label>
+                  Staff Decision Override
+                  <textarea
+                    id="staffOverride"
+                    rows="3"
+                    placeholder="Optional override decision and rationale"
+                  ></textarea>
+                </label>
+              </form>
+            </section>
+
+            <section class="panel results-panel">
+              <div class="panel-head">
+                <h2>Assessment Dashboard</h2>
+                <div class="actions-row">
+                  <button id="copyReportButton" type="button" class="secondary" disabled>Copy Report</button>
+                  <button id="downloadReportButton" type="button" class="secondary" disabled>Export Report</button>
+                </div>
+              </div>
+
+              <div id="emptyState" class="empty-state">
+                Run an assessment to see applicant summary, MER checks, missing evidence, and recommendation.
+              </div>
+
+              <div id="results" class="hidden">
+                <div class="summary-strip">
+                  <div class="summary-card">
+                    <span class="summary-label">Recommendation</span>
+                    <strong id="recommendation"></strong>
+                  </div>
+                  <div class="summary-card">
+                    <span class="summary-label">Course</span>
+                    <strong id="courseName"></strong>
+                  </div>
+                  <div class="summary-card">
+                    <span class="summary-label">Intake</span>
+                    <strong id="intake"></strong>
+                  </div>
+                </div>
+
+                <div class="result-grid">
+                  <article class="result-card">
+                    <h3>Applicant Summary</h3>
+                    <div id="applicantSummary"></div>
+                  </article>
+                  <article class="result-card">
+                    <h3>Evidence Summary</h3>
+                    <div id="evidenceSummary"></div>
+                  </article>
+                  <article class="result-card">
+                    <h3>MER Checklist</h3>
+                    <div id="merChecklist"></div>
+                  </article>
+                  <article class="result-card">
+                    <h3>Missing Documents</h3>
+                    <div id="missingEvidence"></div>
+                  </article>
+                  <article class="result-card">
+                    <h3>Risk Flags</h3>
+                    <div id="riskFlags"></div>
+                  </article>
+                  <article class="result-card">
+                    <h3>AI Explanation</h3>
+                    <div id="aiExplanation"></div>
+                  </article>
+                  <article class="result-card full-span">
+                    <h3>Document Processing Log</h3>
+                    <div id="processingLog"></div>
+                  </article>
+                  <article class="result-card full-span">
+                    <h3>Extracted Text</h3>
+                    <div id="extractedTextViewer"></div>
+                  </article>
+                </div>
+              </div>
+            </section>
           </div>
-
-          <form id="assessmentForm">
-            <div class="grid two">
-              <label>
-                Applicant Name
-                <input name="name" type="text" placeholder="Full name" />
-              </label>
-              <label>
-                Age
-                <input name="age" type="number" min="0" placeholder="Age" />
-              </label>
-            </div>
-
-            <div class="grid two">
-              <label>
-                Country
-                <input name="country" type="text" placeholder="Country / education system" />
-              </label>
-              <label>
-                Course Selected
-                <select name="courseId" id="courseSelect"></select>
-              </label>
-            </div>
-
-            <label>
-              Staff Notes
-              <textarea name="notes" rows="3" placeholder="Internal notes"></textarea>
-            </label>
-
-            <label>
-              Written Application Text
-              <textarea
-                name="applicationText"
-                rows="5"
-                placeholder="Paste applicant statement, transcript text, or manually extracted document text"
-              ></textarea>
-            </label>
-
-            <label class="upload-box">
-              <span>Upload Files</span>
-              <input id="fileInput" type="file" multiple accept=".pdf,image/*,.txt,.doc,.docx" />
-              <small>Images are AI-readable. PDFs are accepted and flagged for manual review if no text is provided.</small>
-            </label>
-
-            <div id="fileList" class="file-list empty">No files selected.</div>
-
-            <label>
-              Staff Decision Override
-              <textarea
-                id="staffOverride"
-                rows="3"
-                placeholder="Optional override decision and rationale"
-              ></textarea>
-            </label>
-          </form>
         </section>
 
-        <section class="panel results-panel">
-          <div class="panel-head">
-            <h2>Assessment Dashboard</h2>
-            <div class="actions-row">
-              <button id="copyReportButton" type="button" class="secondary" disabled>Copy Report</button>
-              <button id="downloadReportButton" type="button" class="secondary" disabled>Export Report</button>
+        <section id="settingsView" class="view">
+          <section class="panel single-panel">
+            <div class="panel-head">
+              <h2>AI Integration Settings</h2>
+              <span id="settingsStatus" class="settings-status">Not configured</span>
             </div>
-          </div>
-
-          <div id="emptyState" class="empty-state">
-            Run an assessment to see applicant summary, MER checks, missing evidence, and recommendation.
-          </div>
-
-          <div id="results" class="hidden">
-            <div class="summary-strip">
-              <div class="summary-card">
-                <span class="summary-label">Recommendation</span>
-                <strong id="recommendation"></strong>
+            <div class="settings-layout">
+              <div>
+                <label class="check-row">
+                  <input id="aiEnabledInput" type="checkbox" checked />
+                  <span>Enable AI extraction</span>
+                </label>
+                <label>
+                  OpenAI API Key
+                  <input id="apiKeyInput" type="password" placeholder="sk-..." autocomplete="off" />
+                </label>
+                <div class="actions-row">
+                  <button id="fetchModelsButton" type="button" class="secondary">Fetch Available Models</button>
+                  <button id="saveSettingsButton" type="button" class="secondary">Save Settings</button>
+                  <button id="clearSettingsButton" type="button" class="secondary">Clear Settings</button>
+                </div>
               </div>
-              <div class="summary-card">
-                <span class="summary-label">Course</span>
-                <strong id="courseName"></strong>
-              </div>
-              <div class="summary-card">
-                <span class="summary-label">Intake</span>
-                <strong id="intake"></strong>
+              <div>
+                <label>
+                  Analysis Model
+                  <select id="modelSelect"></select>
+                </label>
+                <p class="settings-copy">
+                  The API key is stored in this browser only. Model selection is used for document extraction requests.
+                </p>
+                <div class="callout">
+                  <strong>Current behavior</strong>
+                  <p>
+                    If AI is disabled, the app falls back to manual inputs plus the rule-based MER engine. If no key is configured, assessment still works in manual mode.
+                  </p>
+                </div>
               </div>
             </div>
+          </section>
+        </section>
 
-            <div class="result-grid">
-              <article class="result-card">
-                <h3>Applicant Summary</h3>
-                <div id="applicantSummary"></div>
-              </article>
-              <article class="result-card">
-                <h3>Evidence Summary</h3>
-                <div id="evidenceSummary"></div>
-              </article>
-              <article class="result-card">
-                <h3>MER Checklist</h3>
-                <div id="merChecklist"></div>
-              </article>
-              <article class="result-card">
-                <h3>Missing Documents</h3>
-                <div id="missingEvidence"></div>
-              </article>
-              <article class="result-card">
-                <h3>Risk Flags</h3>
-                <div id="riskFlags"></div>
-              </article>
-              <article class="result-card">
-                <h3>AI Explanation</h3>
-                <div id="aiExplanation"></div>
+        <section id="referencesView" class="view">
+          <section class="panel single-panel">
+            <div class="panel-head">
+              <h2>Reference Markdown Files</h2>
+              <span class="muted-note">Curated local markdown alternatives based on the UCC admissions reference guide</span>
+            </div>
+            <div class="reference-layout">
+              <aside id="referenceList" class="reference-list"></aside>
+              <article class="reference-viewer">
+                <div class="reference-meta">
+                  <strong id="referenceTitle">Select a markdown file</strong>
+                  <span id="referencePath" class="muted-note"></span>
+                </div>
+                <pre id="referenceContent" class="markdown-preview">Choose a file from the left to inspect its content.</pre>
               </article>
             </div>
-          </div>
+          </section>
+        </section>
+
+        <section id="coursesView" class="view">
+          <section class="panel single-panel">
+            <div class="panel-head">
+              <h2>Courses and MER Settings</h2>
+              <div class="actions-row">
+                <button id="newCourseButton" type="button" class="secondary">New Course</button>
+                <button id="saveCourseButton" type="button">Save Course</button>
+              </div>
+            </div>
+            <div class="grid mer-grid">
+              <div>
+                <label>
+                  Course
+                  <select id="courseEditorSelect"></select>
+                </label>
+                <label>
+                  Course ID
+                  <input id="editorCourseId" type="text" placeholder="course-id" />
+                </label>
+                <label>
+                  Course Name
+                  <input id="editorCourseName" type="text" placeholder="Course name" />
+                </label>
+                <div class="grid two">
+                  <label>
+                    Intake
+                    <input id="editorIntake" type="text" placeholder="Monthly" />
+                  </label>
+                  <label>
+                    Minimum Age
+                    <input id="editorMinimumAge" type="number" min="0" />
+                  </label>
+                </div>
+              </div>
+              <div>
+                <label>
+                  Academic MER Criteria
+                  <textarea id="editorAcademicCriteria" rows="8" placeholder="One criterion per line"></textarea>
+                </label>
+                <label>
+                  English MER Criteria
+                  <textarea id="editorEnglishCriteria" rows="8" placeholder="One criterion per line"></textarea>
+                </label>
+                <p class="muted-note">
+                  Saving updates the local [data/mer-rules.json](/Users/felixoking/Downloads/admission-screening/data/mer-rules.json) file used by the assessment engine.
+                </p>
+              </div>
+            </div>
+          </section>
         </section>
       </main>
     </div>
