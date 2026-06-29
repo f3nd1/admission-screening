@@ -21,9 +21,10 @@ This is a dependency-free Node.js app (no npm packages). The flow for each asses
 
 1. **Browser** (`public/`) collects applicant form data and file uploads, sends a JSON payload to `POST /api/assess`
 2. **`server.js`** routes requests; for `/api/assess` it calls the extractor then the MER checker
-3. **`lib/extractor.js`** — sends applicant data + file contents to the OpenAI Responses API (`/v1/responses`) and returns a structured `extracted` object. Falls back to a manual stub if no API key or on error.
+3. **`lib/document-processing.js`** — pre-processes uploaded files before extraction: PDFs are passed to `scripts/extract_pdf_text.py` (Python subprocess using `pypdf`); images are OCR'd via OpenAI vision; text files are read directly. Adds `extractedText` and `processingLogs` to each file object.
+4. **`lib/extractor.js`** — sends applicant data + processed file contents to the OpenAI Responses API (`/v1/responses`) and returns a structured `extracted` object. Falls back to a manual stub if no API key or on error.
 4. **`lib/mer.js`** — deterministic rules engine that takes the `extracted` object and evaluates three criteria: academic qualification, English proficiency, and age. Returns per-criterion `{ status, basis, reasons, flags }` and a final `recommendation` string.
-5. **`data/mer-rules.json`** — all thresholds, equivalency tables, and benchmark scores live here. The MER engine reads this at startup and the `/api/rules` endpoint exposes it for live editing via the UI.
+6. **`data/mer-rules.json`** — all thresholds, equivalency tables, and benchmark scores live here. The MER engine reads this at startup and the `/api/rules` endpoint exposes it for live editing via the UI.
 
 ### MER recommendation outcomes
 
@@ -49,5 +50,6 @@ Add an entry under `englishBenchmarks` in `data/mer-rules.json`, then add a matc
 ## Key data files
 
 - `data/mer-rules.json` — live-editable via `/api/rules` PUT; governs all scoring thresholds and equivalency mappings
-- `data/mock-applicant.json` — sample payload for manual testing
+- `data/mock-applicant.json` — sample payload for manual testing via `GET /api/mock`
+- `scripts/extract_pdf_text.py` — Python (`pypdf`) subprocess called by `lib/document-processing.js` for PDF text extraction; hardcoded Python binary path may need updating for non-macOS environments
 - `data/reference-guides/` — human-readable authoring notes explaining the equivalency tables
