@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admission Eligibility Checker</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">United Ceres College</p>
+          <h1>Admission Eligibility Checker</h1>
+          <p class="hero-copy">
+            Upload evidence, extract applicant facts, and apply transparent MER rules
+            for admissions screening.
+          </p>
+        </div>
+        <div class="status-card" id="apiStatus">Checking OpenAI configuration...</div>
+      </header>
+
+      <main class="layout">
+        <section class="panel form-panel">
+          <div class="panel-head">
+            <h2>Applicant Intake</h2>
+            <div class="actions-row">
+              <button id="loadMockButton" type="button" class="secondary">Load Mock Data</button>
+              <button id="submitButton" type="button">Run Assessment</button>
+            </div>
+          </div>
+
+          <form id="assessmentForm">
+            <div class="grid two">
+              <label>
+                Applicant Name
+                <input name="name" type="text" placeholder="Full name" />
+              </label>
+              <label>
+                Age
+                <input name="age" type="number" min="0" placeholder="Age" />
+              </label>
+            </div>
+
+            <div class="grid two">
+              <label>
+                Country
+                <input name="country" type="text" placeholder="Country / education system" />
+              </label>
+              <label>
+                Course Selected
+                <select name="courseId" id="courseSelect"></select>
+              </label>
+            </div>
+
+            <label>
+              Staff Notes
+              <textarea name="notes" rows="3" placeholder="Internal notes"></textarea>
+            </label>
+
+            <label>
+              Written Application Text
+              <textarea
+                name="applicationText"
+                rows="5"
+                placeholder="Paste applicant statement, transcript text, or manually extracted document text"
+              ></textarea>
+            </label>
+
+            <label class="upload-box">
+              <span>Upload Files</span>
+              <input id="fileInput" type="file" multiple accept=".pdf,image/*,.txt,.doc,.docx" />
+              <small>Images are AI-readable. PDFs are accepted and flagged for manual review if no text is provided.</small>
+            </label>
+
+            <div id="fileList" class="file-list empty">No files selected.</div>
+
+            <label>
+              Staff Decision Override
+              <textarea
+                id="staffOverride"
+                rows="3"
+                placeholder="Optional override decision and rationale"
+              ></textarea>
+            </label>
+          </form>
+        </section>
+
+        <section class="panel results-panel">
+          <div class="panel-head">
+            <h2>Assessment Dashboard</h2>
+            <div class="actions-row">
+              <button id="copyReportButton" type="button" class="secondary" disabled>Copy Report</button>
+              <button id="downloadReportButton" type="button" class="secondary" disabled>Export Report</button>
+            </div>
+          </div>
+
+          <div id="emptyState" class="empty-state">
+            Run an assessment to see applicant summary, MER checks, missing evidence, and recommendation.
+          </div>
+
+          <div id="results" class="hidden">
+            <div class="summary-strip">
+              <div class="summary-card">
+                <span class="summary-label">Recommendation</span>
+                <strong id="recommendation"></strong>
+              </div>
+              <div class="summary-card">
+                <span class="summary-label">Course</span>
+                <strong id="courseName"></strong>
+              </div>
+              <div class="summary-card">
+                <span class="summary-label">Intake</span>
+                <strong id="intake"></strong>
+              </div>
+            </div>
+
+            <div class="result-grid">
+              <article class="result-card">
+                <h3>Applicant Summary</h3>
+                <div id="applicantSummary"></div>
+              </article>
+              <article class="result-card">
+                <h3>Evidence Summary</h3>
+                <div id="evidenceSummary"></div>
+              </article>
+              <article class="result-card">
+                <h3>MER Checklist</h3>
+                <div id="merChecklist"></div>
+              </article>
+              <article class="result-card">
+                <h3>Missing Documents</h3>
+                <div id="missingEvidence"></div>
+              </article>
+              <article class="result-card">
+                <h3>Risk Flags</h3>
+                <div id="riskFlags"></div>
+              </article>
+              <article class="result-card">
+                <h3>AI Explanation</h3>
+                <div id="aiExplanation"></div>
+              </article>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+  </html>

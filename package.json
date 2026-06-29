@@ -1,0 +1,9 @@
+{
+  "name": "admission-eligibility-checker",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Admission Eligibility Checker for United Ceres College",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

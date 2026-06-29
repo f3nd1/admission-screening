@@ -1,0 +1,30 @@
+{
+  "applicant": {
+    "name": "Asha Raman",
+    "age": 23,
+    "country": "India",
+    "courseId": "dbm-elearning",
+    "notes": "Submitted school certificate, IELTS result and CV.",
+    "applicationText": "I completed Class 12 in India, scored IELTS 6.0, and have worked as an administrative assistant for 2 years."
+  },
+  "files": [
+    {
+      "name": "class12-certificate.jpg",
+      "type": "image/jpeg",
+      "size": 182003,
+      "textPreview": "Certificate shows successful completion of India Class 12."
+    },
+    {
+      "name": "ielts-result.jpg",
+      "type": "image/jpeg",
+      "size": 92302,
+      "textPreview": "IELTS overall band 6.0"
+    },
+    {
+      "name": "cv.pdf",
+      "type": "application/pdf",
+      "size": 350210,
+      "textPreview": "Administrative assistant, 2 years experience."
+    }
+  ]
+}

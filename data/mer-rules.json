@@ -1,0 +1,113 @@
+{
+  "courses": {
+    "dbm-elearning": {
+      "id": "dbm-elearning",
+      "name": "Diploma in Business Management (E-Learning)",
+      "intake": "Monthly",
+      "minimumAge": 17,
+      "academicCriteria": [
+        {
+          "id": "gce_o_level_3_passes",
+          "label": "Passed any 3 subjects in GCE O-Level"
+        },
+        {
+          "id": "twelve_years_formal_education",
+          "label": "Completed 12 years of formal education"
+        },
+        {
+          "id": "ucc_management_certificate",
+          "label": "Completed United Ceres College Certificate in Management Course"
+        },
+        {
+          "id": "equivalent_qualification",
+          "label": "Holds equivalent qualifications"
+        },
+        {
+          "id": "no_formal_with_five_years_experience",
+          "label": "No formal qualification but at least 5 years of work experience, subject to interview review"
+        }
+      ],
+      "englishCriteria": [
+        {
+          "id": "ielts_5_5",
+          "label": "IELTS 5.5 or above"
+        },
+        {
+          "id": "equivalent_english",
+          "label": "Equivalent English qualification"
+        },
+        {
+          "id": "ucc_placement_70",
+          "label": "UCC English Placement Test score of 70 or above"
+        },
+        {
+          "id": "ucc_english_level_3",
+          "label": "Completed UCC English Course Level 3"
+        }
+      ]
+    }
+  },
+  "educationEquivalencies": [
+    {
+      "match": ["gce o-level", "o level", "olevel", "cambridge o level"],
+      "level": "secondary",
+      "yearsFormalEducation": 10,
+      "countsAsSecondaryLeaving": true
+    },
+    {
+      "match": ["uk gcse", "gcse", "cambridge igcse", "igcse", "ib myp"],
+      "level": "secondary",
+      "yearsFormalEducation": 10,
+      "countsAsSecondaryLeaving": true
+    },
+    {
+      "match": ["australia year 10"],
+      "level": "lower_secondary",
+      "yearsFormalEducation": 10
+    },
+    {
+      "match": ["australia year 12", "hsc", "vce", "qce", "wace", "sace", "tce", "act ssc", "ibdp", "china gaokao", "india class 12", "malaysia stpm", "brunei a-level", "canada grade 12", "high school diploma", "us high school diploma", "germany abitur", "french baccalaureat", "caribbean cape", "denmark studentereksamen"],
+      "level": "pre_university",
+      "yearsFormalEducation": 12,
+      "countsAsPreUniversity": true
+    },
+    {
+      "match": ["china zhongkao", "india class 10", "malaysia spm", "germany mittlerer schulabschluss", "realschule", "france brevet", "caribbean csec"],
+      "level": "secondary",
+      "yearsFormalEducation": 10,
+      "countsAsSecondaryLeaving": true
+    },
+    {
+      "match": ["ucc certificate in management"],
+      "level": "ucc_pathway",
+      "yearsFormalEducation": 10,
+      "countsAsUccManagementCertificate": true
+    }
+  ],
+  "schoolLevelByAge": [
+    { "ageMin": 6, "ageMax": 7, "label": "Primary 1 / Grade 1" },
+    { "ageMin": 7, "ageMax": 8, "label": "Primary 2 / Grade 2" },
+    { "ageMin": 8, "ageMax": 9, "label": "Primary 3 / Grade 3" },
+    { "ageMin": 9, "ageMax": 10, "label": "Primary 4 / Grade 4" },
+    { "ageMin": 10, "ageMax": 11, "label": "Primary 5 / Grade 5" },
+    { "ageMin": 11, "ageMax": 12, "label": "Primary 6 / Grade 6" },
+    { "ageMin": 12, "ageMax": 13, "label": "Secondary 1 / Grade 7" },
+    { "ageMin": 13, "ageMax": 14, "label": "Secondary 2 / Grade 8" },
+    { "ageMin": 14, "ageMax": 15, "label": "Secondary 3 / Grade 9" },
+    { "ageMin": 15, "ageMax": 16, "label": "Secondary 4 / Grade 10" },
+    { "ageMin": 16, "ageMax": 17, "label": "Pre-University 1 / Grade 11" },
+    { "ageMin": 17, "ageMax": 18, "label": "Pre-University 2 / Grade 12" },
+    { "ageMin": 18, "ageMax": 19, "label": "Polytechnic Year 3 / Tertiary / Higher Education" }
+  ],
+  "englishBenchmarks": {
+    "ielts": { "minimum": 5.5, "label": "IELTS 5.5" },
+    "ucc_placement_test": { "minimum": 70, "label": "UCC Placement Test 70" },
+    "pte_academic": { "minimum": 55, "label": "PTE Academic 55" },
+    "toefl_ibt": { "minimum": 46, "recommendedUpperRange": 59, "label": "TOEFL iBT 46-59" },
+    "duolingo": { "minimum": 95, "recommendedUpperRange": 100, "label": "Duolingo 95-100" },
+    "igcse_english_first_language": { "acceptedGrades": ["C", "5", "A", "A*", "B", "6", "7", "8", "9"], "label": "IGCSE English First Language C / 5 or above" },
+    "igcse_english_second_language": { "acceptedGrades": ["A", "7", "8", "9"], "label": "IGCSE English Second Language A / 7 or above" },
+    "gce_o_level_english": { "acceptedGrades": ["A1", "A2", "B3", "B4", "C5", "C6"], "label": "GCE O-Level English C6 or above" },
+    "ucc_english_course_level_3": { "accepted": true, "label": "UCC English Course Level 3" }
+  }
+}
