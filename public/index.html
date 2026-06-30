@@ -9,15 +9,12 @@
   <body>
     <div class="page-shell">
       <header class="hero">
-        <div>
+        <div class="hero-text">
           <p class="eyebrow">United Ceres College</p>
           <h1>Admission Eligibility Checker</h1>
-          <p class="hero-copy">
-            AI-assisted evidence extraction, local reference files, and editable MER settings
-            for admissions screening.
-          </p>
+          <p class="hero-copy">AI-assisted extraction and rule-based MER screening for admissions staff.</p>
         </div>
-        <div class="status-card" id="apiStatus">Checking configuration...</div>
+        <div class="status-card" id="apiStatus">Checking configuration…</div>
       </header>
 
       <nav class="top-nav">
@@ -77,9 +74,10 @@
                 </label>
 
                 <label class="upload-box">
-                  <span>Upload Files</span>
+                  <div class="upload-icon">⬆</div>
+                  <span class="upload-label-text">Drop files or <span class="upload-link">browse</span></span>
+                  <small>PDF, JPG/PNG, and text files — upload in multiple rounds if needed</small>
                   <input id="fileInput" type="file" multiple accept=".pdf,image/*,.txt,.doc,.docx" />
-                  <small>Upload in multiple rounds if needed. Supported for text extraction: PDF, JPG/PNG, and text files.</small>
                 </label>
 
                 <div id="fileList" class="file-list empty">No files selected.</div>
@@ -105,7 +103,8 @@
               </div>
 
               <div id="emptyState" class="empty-state">
-                Run an assessment to see applicant summary, MER checks, missing evidence, and recommendation.
+                <div class="empty-state-icon">📋</div>
+                <p>Run an assessment to see the applicant summary, MER checks, missing evidence, and final recommendation.</p>
               </div>
 
               <div id="results" class="hidden">
