@@ -1,5 +1,24 @@
 {
   "courses": {
+    "infotech-elearning": {
+      "id": "infotech-elearning",
+      "name": "Diploma in Information Technology (E-Learning)",
+      "intake": "Monthly",
+      "minimumAge": 17,
+      "academicCriteria": [
+        { "id": "gce_o_level_3_passes", "label": "Passed any 3 subjects in GCE O-Level" },
+        { "id": "twelve_years_formal_education", "label": "Completed 12 years of formal education" },
+        { "id": "ucc_management_certificate", "label": "Completed United Ceres College Certificate in Management Course" },
+        { "id": "equivalent_qualification", "label": "Holds equivalent qualifications" },
+        { "id": "no_formal_with_five_years_experience", "label": "No formal qualification but at least 5 years of work experience, subject to interview review" }
+      ],
+      "englishCriteria": [
+        { "id": "ielts_5_5", "label": "IELTS 5.5 or above" },
+        { "id": "equivalent_english", "label": "Equivalent English qualification" },
+        { "id": "ucc_placement_70", "label": "UCC English Placement Test score of 70 or above" },
+        { "id": "ucc_english_level_3", "label": "Completed UCC English Course Level 3" }
+      ]
+    },
     "dbm-elearning": {
       "id": "dbm-elearning",
       "name": "Diploma in Business Management (E-Learning)",

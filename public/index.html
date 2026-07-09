@@ -1,280 +1,186 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admission Eligibility Checker</title>
-    <link rel="stylesheet" href="/styles.css" />
-  </head>
-  <body>
-    <div class="page-shell">
-      <header class="hero">
-        <div class="hero-text">
-          <p class="eyebrow">United Ceres College</p>
-          <h1>Admission Eligibility Checker</h1>
-          <p class="hero-copy">AI-assisted extraction and rule-based MER screening for admissions staff.</p>
-        </div>
-        <div class="status-card" id="apiStatus">Checking configuration…</div>
-      </header>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admission Eligibility Checker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=Lora:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
 
-      <nav class="top-nav">
-        <button class="nav-tab active" data-view="screeningView" type="button">Screening</button>
-        <button class="nav-tab" data-view="settingsView" type="button">AI Settings</button>
-        <button class="nav-tab" data-view="referencesView" type="button">Reference MD Files</button>
-        <button class="nav-tab" data-view="coursesView" type="button">Courses &amp; MER</button>
-      </nav>
+<!-- ── HEADER ─────────────────────────────────────────── -->
+<header class="app-header">
+  <div class="header-brand">
+    <p class="header-eyebrow">UNITED CERES COLLEGE</p>
+    <h1 class="header-title">Admission Eligibility Checker</h1>
+  </div>
+  <div class="header-staff">
+    <div class="header-staff-info">
+      <span class="header-staff-name">Felix Oking</span>
+      <span class="header-staff-role">Admissions Office</span>
+    </div>
+    <div class="header-avatar">FO</div>
+  </div>
+</header>
 
-      <main class="view-stack">
-        <section id="screeningView" class="view active">
-          <div class="layout">
-            <section class="panel form-panel">
-              <div class="panel-head">
-                <h2>Applicant Intake</h2>
-                <div class="actions-row">
-                  <button id="loadMockButton" type="button" class="secondary">Load Mock Data</button>
-                  <button id="submitButton" type="button">Run Assessment</button>
-                </div>
-              </div>
+<!-- ── BODY ───────────────────────────────────────────── -->
+<div class="app-body">
 
-              <form id="assessmentForm">
-                <div class="grid two">
-                  <label>
-                    Applicant Name
-                    <input name="name" type="text" placeholder="Full name" />
-                  </label>
-                  <label>
-                    Age
-                    <input name="age" type="number" min="0" placeholder="Age" />
-                  </label>
-                </div>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-top">
+      <p class="sidebar-label">Applicant Queue</p>
+      <button class="btn-new-applicant" id="btnNewApplicant" type="button">+ New Applicant</button>
+    </div>
+    <div class="sidebar-list" id="sidebarList"></div>
+  </aside>
 
-                <div class="grid two">
-                  <label>
-                    Country
-                    <input name="country" type="text" placeholder="Country / education system" />
-                  </label>
-                  <label>
-                    Course Selected
-                    <select name="courseId" id="courseSelect"></select>
-                  </label>
-                </div>
+  <!-- MAIN -->
+  <main class="main-content" id="mainContent">
 
-                <label>
-                  Staff Notes
-                  <textarea name="notes" rows="3" placeholder="Internal notes"></textarea>
-                </label>
-
-                <label>
-                  Written Application Text
-                  <textarea
-                    name="applicationText"
-                    rows="5"
-                    placeholder="Paste applicant statement, transcript text, or manually extracted document text"
-                  ></textarea>
-                </label>
-
-                <label class="upload-box">
-                  <div class="upload-icon">⬆</div>
-                  <span class="upload-label-text">Drop files or <span class="upload-link">browse</span></span>
-                  <small>PDF, JPG/PNG, and text files — upload in multiple rounds if needed</small>
-                  <input id="fileInput" type="file" multiple accept=".pdf,image/*,.txt,.doc,.docx" />
-                </label>
-
-                <div id="fileList" class="file-list empty">No files selected.</div>
-
-                <label>
-                  Staff Decision Override
-                  <textarea
-                    id="staffOverride"
-                    rows="3"
-                    placeholder="Optional override decision and rationale"
-                  ></textarea>
-                </label>
-              </form>
-            </section>
-
-            <section class="panel results-panel">
-              <div class="panel-head">
-                <h2>Assessment Dashboard</h2>
-                <div class="actions-row">
-                  <button id="copyReportButton" type="button" class="secondary" disabled>Copy Report</button>
-                  <button id="downloadReportButton" type="button" class="secondary" disabled>Export Report</button>
-                </div>
-              </div>
-
-              <div id="emptyState" class="empty-state">
-                <div class="empty-state-icon">📋</div>
-                <p>Run an assessment to see the applicant summary, MER checks, missing evidence, and final recommendation.</p>
-              </div>
-
-              <div id="results" class="hidden">
-                <div class="summary-strip">
-                  <div class="summary-card">
-                    <span class="summary-label">Recommendation</span>
-                    <strong id="recommendation"></strong>
-                  </div>
-                  <div class="summary-card">
-                    <span class="summary-label">Course</span>
-                    <strong id="courseName"></strong>
-                  </div>
-                  <div class="summary-card">
-                    <span class="summary-label">Intake</span>
-                    <strong id="intake"></strong>
-                  </div>
-                </div>
-
-                <div class="result-grid">
-                  <article class="result-card">
-                    <h3>Applicant Summary</h3>
-                    <div id="applicantSummary"></div>
-                  </article>
-                  <article class="result-card">
-                    <h3>Evidence Summary</h3>
-                    <div id="evidenceSummary"></div>
-                  </article>
-                  <article class="result-card">
-                    <h3>MER Checklist</h3>
-                    <div id="merChecklist"></div>
-                  </article>
-                  <article class="result-card">
-                    <h3>Missing Documents</h3>
-                    <div id="missingEvidence"></div>
-                  </article>
-                  <article class="result-card">
-                    <h3>Risk Flags</h3>
-                    <div id="riskFlags"></div>
-                  </article>
-                  <article class="result-card">
-                    <h3>AI Explanation</h3>
-                    <div id="aiExplanation"></div>
-                  </article>
-                  <article class="result-card full-span">
-                    <h3>Document Processing Log</h3>
-                    <div id="processingLog"></div>
-                  </article>
-                  <article class="result-card full-span">
-                    <h3>Extracted Text</h3>
-                    <div id="extractedTextViewer"></div>
-                  </article>
-                </div>
-              </div>
-            </section>
-          </div>
-        </section>
-
-        <section id="settingsView" class="view">
-          <section class="panel single-panel">
-            <div class="panel-head">
-              <h2>AI Integration Settings</h2>
-              <span id="settingsStatus" class="settings-status">Not configured</span>
-            </div>
-            <div class="settings-layout">
-              <div>
-                <label class="check-row">
-                  <input id="aiEnabledInput" type="checkbox" checked />
-                  <span>Enable AI extraction</span>
-                </label>
-                <label>
-                  OpenAI API Key
-                  <input id="apiKeyInput" type="password" placeholder="sk-..." autocomplete="off" />
-                </label>
-                <div class="actions-row">
-                  <button id="fetchModelsButton" type="button" class="secondary">Fetch Available Models</button>
-                  <button id="saveSettingsButton" type="button" class="secondary">Save Settings</button>
-                  <button id="clearSettingsButton" type="button" class="secondary">Clear Settings</button>
-                </div>
-              </div>
-              <div>
-                <label>
-                  Analysis Model
-                  <select id="modelSelect"></select>
-                </label>
-                <p class="settings-copy">
-                  The API key is stored in this browser only. Model selection is used for document extraction requests.
-                </p>
-                <div class="callout">
-                  <strong>Current behavior</strong>
-                  <p>
-                    If AI is disabled, the app falls back to manual inputs plus the rule-based MER engine. If no key is configured, assessment still works in manual mode.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
-        </section>
-
-        <section id="referencesView" class="view">
-          <section class="panel single-panel">
-            <div class="panel-head">
-              <h2>Reference Markdown Files</h2>
-              <span class="muted-note">Curated local markdown alternatives based on the UCC admissions reference guide</span>
-            </div>
-            <div class="reference-layout">
-              <aside id="referenceList" class="reference-list"></aside>
-              <article class="reference-viewer">
-                <div class="reference-meta">
-                  <strong id="referenceTitle">Select a markdown file</strong>
-                  <span id="referencePath" class="muted-note"></span>
-                </div>
-                <pre id="referenceContent" class="markdown-preview">Choose a file from the left to inspect its content.</pre>
-              </article>
-            </div>
-          </section>
-        </section>
-
-        <section id="coursesView" class="view">
-          <section class="panel single-panel">
-            <div class="panel-head">
-              <h2>Courses and MER Settings</h2>
-              <div class="actions-row">
-                <button id="newCourseButton" type="button" class="secondary">New Course</button>
-                <button id="saveCourseButton" type="button">Save Course</button>
-              </div>
-            </div>
-            <div class="grid mer-grid">
-              <div>
-                <label>
-                  Course
-                  <select id="courseEditorSelect"></select>
-                </label>
-                <label>
-                  Course ID
-                  <input id="editorCourseId" type="text" placeholder="course-id" />
-                </label>
-                <label>
-                  Course Name
-                  <input id="editorCourseName" type="text" placeholder="Course name" />
-                </label>
-                <div class="grid two">
-                  <label>
-                    Intake
-                    <input id="editorIntake" type="text" placeholder="Monthly" />
-                  </label>
-                  <label>
-                    Minimum Age
-                    <input id="editorMinimumAge" type="number" min="0" />
-                  </label>
-                </div>
-              </div>
-              <div>
-                <label>
-                  Academic MER Criteria
-                  <textarea id="editorAcademicCriteria" rows="8" placeholder="One criterion per line"></textarea>
-                </label>
-                <label>
-                  English MER Criteria
-                  <textarea id="editorEnglishCriteria" rows="8" placeholder="One criterion per line"></textarea>
-                </label>
-                <p class="muted-note">
-                  Saving updates the local [data/mer-rules.json](/Users/felixoking/Downloads/admission-screening/data/mer-rules.json) file used by the assessment engine.
-                </p>
-              </div>
-            </div>
-          </section>
-        </section>
-      </main>
+    <!-- EMPTY STATE (no applicant selected) -->
+    <div class="main-empty" id="mainEmpty">
+      <div class="main-empty-icon">📋</div>
+      <p>Select an applicant from the queue to begin review.</p>
     </div>
 
-    <script src="/app.js"></script>
-  </body>
-  </html>
+    <!-- APPLICANT WORKSPACE -->
+    <div class="workspace" id="workspace" style="display:none">
+
+      <!-- Context bar -->
+      <div class="context-bar">
+        <div class="context-bar-left">
+          <h2 class="context-name" id="ctxName"></h2>
+          <span class="context-meta" id="ctxMeta"></span>
+        </div>
+        <div class="context-bar-right">
+          <span class="recommendation-pill" id="ctxPill"></span>
+        </div>
+      </div>
+
+      <!-- Step tabs -->
+      <div class="step-tabs" id="stepTabs">
+        <button class="step-tab" data-step="0" type="button">1. Intake</button>
+        <button class="step-tab" data-step="1" type="button">2. Extraction</button>
+        <button class="step-tab" data-step="2" type="button">3. MER Result</button>
+        <button class="step-tab" data-step="3" type="button">4. Decision</button>
+        <button class="step-tab" data-step="4" type="button">5. Report</button>
+      </div>
+
+      <!-- STEP 1: INTAKE -->
+      <div class="step-panel" id="step0">
+        <div class="card">
+          <div class="intake-grid" id="intakeGrid"></div>
+          <div class="intake-notes" id="intakeNotes"></div>
+          <div class="intake-statement" id="intakeStatement"></div>
+          <div class="intake-files" id="intakeFiles"></div>
+        </div>
+      </div>
+
+      <!-- STEP 2: EXTRACTION -->
+      <div class="step-panel" id="step1" style="display:none">
+        <div class="extraction-banner" id="extractionBanner"></div>
+        <div class="extraction-empty" id="extractionEmpty" style="display:none">
+          <p>Extraction has not been run yet for this applicant.</p>
+          <button class="btn-run-extraction" id="btnRunExtraction" type="button">Run Extraction</button>
+          <div class="extraction-spinner" id="extractionSpinner" style="display:none"></div>
+        </div>
+        <div class="card extraction-table" id="extractionTable" style="display:none">
+          <div class="extraction-rows" id="extractionRows"></div>
+        </div>
+      </div>
+
+      <!-- STEP 3: MER RESULT -->
+      <div class="step-panel" id="step2" style="display:none">
+        <div id="merRecommendationBanner"></div>
+        <div class="card mer-rules-card" id="merRulesCard"></div>
+        <div class="card risk-flags-card" id="riskFlagsCard" style="display:none">
+          <h3 class="risk-flags-title">Risk Flags</h3>
+          <ul class="risk-flags-list" id="riskFlagsList"></ul>
+        </div>
+      </div>
+
+      <!-- STEP 4: DECISION -->
+      <div class="step-panel" id="step3" style="display:none">
+        <div id="decisionRecommendationBanner"></div>
+        <div class="card decision-card">
+          <div class="decision-buttons" id="decisionButtons">
+            <button class="decision-btn decision-approve" data-decision="Approve — Eligible" data-color="#2F7A4D" type="button">Approve — Eligible</button>
+            <button class="decision-btn decision-conditional" data-decision="Conditional — Request Evidence" data-color="#B4790C" type="button">Conditional — Request Evidence</button>
+            <button class="decision-btn decision-reject" data-decision="Reject — Not Eligible" data-color="#B23A2E" type="button">Reject — Not Eligible</button>
+          </div>
+          <div class="mismatch-warning" id="mismatchWarning" style="display:none">
+            Staff decision differs from the system recommendation.
+          </div>
+          <label class="decision-notes-label">
+            <span class="field-label">Reviewer notes / override reason</span>
+            <textarea class="decision-notes" id="decisionNotes" rows="4" placeholder="Optional notes or justification for this decision…"></textarea>
+          </label>
+          <button class="btn-log-decision" id="btnLogDecision" type="button">Log Decision</button>
+        </div>
+        <div class="decision-log" id="decisionLog"></div>
+      </div>
+
+      <!-- STEP 5: REPORT -->
+      <div class="step-panel" id="step4" style="display:none">
+        <div class="report-actions">
+          <button class="btn-copy-report" id="btnCopyReport" type="button">Copy Report</button>
+          <button class="btn-download-report" id="btnDownloadReport" type="button">Download .txt</button>
+        </div>
+        <pre class="report-pre" id="reportPre"></pre>
+      </div>
+
+    </div><!-- /workspace -->
+  </main>
+</div>
+
+<!-- NEW APPLICANT MODAL -->
+<div class="modal-scrim" id="modalScrim" style="display:none">
+  <div class="modal" id="modalNewApplicant">
+    <h2 class="modal-title">New Applicant</h2>
+    <div class="modal-form">
+      <div class="modal-grid">
+        <label class="modal-label">
+          <span class="field-label">Full Name</span>
+          <input class="modal-input" id="mName" type="text" placeholder="Full name" />
+        </label>
+        <label class="modal-label">
+          <span class="field-label">Age</span>
+          <input class="modal-input" id="mAge" type="number" min="0" placeholder="Age" />
+        </label>
+      </div>
+      <label class="modal-label">
+        <span class="field-label">Country</span>
+        <input class="modal-input" id="mCountry" type="text" placeholder="Country / education system" />
+      </label>
+      <label class="modal-label">
+        <span class="field-label">Programme</span>
+        <select class="modal-input" id="mCourse"></select>
+      </label>
+      <label class="modal-label">
+        <span class="field-label">Notes</span>
+        <textarea class="modal-input" id="mNotes" rows="3" placeholder="Internal notes"></textarea>
+      </label>
+      <label class="modal-label">
+        <span class="field-label">Written Statement</span>
+        <textarea class="modal-input" id="mStatement" rows="4" placeholder="Applicant's written statement"></textarea>
+      </label>
+      <div class="modal-files-section">
+        <span class="field-label">Evidence Files</span>
+        <div class="modal-file-chips" id="modalFileChips"></div>
+        <button class="btn-attach" id="btnAttach" type="button">+ Attach evidence file</button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" id="btnModalCancel" type="button">Cancel</button>
+      <button class="btn-modal-add" id="btnModalAdd" type="button">Add Applicant</button>
+    </div>
+  </div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+[
+  {
+    "id": "app-001",
+    "name": "Nguyen Thi Mai",
+    "age": 22,
+    "country": "Vietnam",
+    "courseId": "dbm-elearning",
+    "notes": "Applicant submitted documents ahead of schedule. Previous institution confirms graduation.",
+    "writtenStatement": "I have always been passionate about business and believe this diploma will help me achieve my career goals in the finance sector. I completed my high school education in Ho Chi Minh City and have been working in retail management for two years.",
+    "files": [
+      { "name": "transcript.pdf", "kindLabel": "PDF" },
+      { "name": "ielts_certificate.pdf", "kindLabel": "PDF" },
+      { "name": "passport_scan.jpg", "kindLabel": "IMG" }
+    ],
+    "extractionRun": true,
+    "facts": {
+      "applicantName": { "value": "Nguyen Thi Mai", "confidence": "High", "source": "transcript.pdf" },
+      "age": { "value": "22", "confidence": "High", "source": "passport_scan.jpg" },
+      "country": { "value": "Vietnam", "confidence": "High", "source": "passport_scan.jpg" },
+      "highestQualification": { "value": "Vietnam National High School Certificate (Bằng Tốt Nghiệp THPT)", "confidence": "High", "source": "transcript.pdf" },
+      "subjectsPassedCount": { "value": "6", "confidence": "High", "source": "transcript.pdf" },
+      "englishQualification": { "value": "IELTS", "confidence": "High", "source": "ielts_certificate.pdf" },
+      "englishScore": { "value": "6.0", "confidence": "High", "source": "ielts_certificate.pdf" },
+      "identityVerified": { "value": "Yes", "confidence": "High", "source": "passport_scan.jpg" },
+      "writtenStatement": { "value": "Applicant demonstrates clear motivation and relevant work experience in retail management.", "confidence": "High", "source": "transcript.pdf" }
+    },
+    "transcriptCertified": true,
+    "decisionLog": [],
+    "status": "Eligible",
+    "createdAt": "2026-07-01T08:00:00.000Z"
+  },
+  {
+    "id": "app-002",
+    "name": "Arjun Mehta",
+    "age": 19,
+    "country": "India",
+    "courseId": "dbm-elearning",
+    "notes": "English score is borderline. Awaiting updated IELTS result.",
+    "writtenStatement": "I completed my Class 12 examinations in Maharashtra and am eager to pursue higher education in business management. I am currently retaking IELTS to improve my band score.",
+    "files": [
+      { "name": "class12_marksheet.pdf", "kindLabel": "PDF" },
+      { "name": "ielts_result.pdf", "kindLabel": "PDF" },
+      { "name": "aadhar_card.jpg", "kindLabel": "IMG" }
+    ],
+    "extractionRun": true,
+    "facts": {
+      "applicantName": { "value": "Arjun Mehta", "confidence": "High", "source": "class12_marksheet.pdf" },
+      "age": { "value": "19", "confidence": "High", "source": "aadhar_card.jpg" },
+      "country": { "value": "India", "confidence": "High", "source": "aadhar_card.jpg" },
+      "highestQualification": { "value": "India Class 12 (Higher Secondary Certificate)", "confidence": "High", "source": "class12_marksheet.pdf" },
+      "subjectsPassedCount": { "value": "5", "confidence": "High", "source": "class12_marksheet.pdf" },
+      "englishQualification": { "value": "IELTS", "confidence": "Medium", "source": "ielts_result.pdf" },
+      "englishScore": { "value": "5.0", "confidence": "Medium", "source": "ielts_result.pdf" },
+      "identityVerified": { "value": "Yes", "confidence": "Medium", "source": "aadhar_card.jpg" },
+      "writtenStatement": { "value": "Applicant is motivated but English proficiency is below the required threshold.", "confidence": "High", "source": "class12_marksheet.pdf" }
+    },
+    "transcriptCertified": false,
+    "decisionLog": [],
+    "status": "Conditional",
+    "createdAt": "2026-07-03T10:30:00.000Z"
+  },
+  {
+    "id": "app-003",
+    "name": "Bello Chinasa Okafor",
+    "age": 16,
+    "country": "Nigeria",
+    "courseId": "infotech-elearning",
+    "notes": "Applicant is under minimum age. Application cannot proceed without age waiver.",
+    "writtenStatement": "I am very interested in information technology and hope to begin my studies as soon as possible. I am currently in my final year of secondary school.",
+    "files": [
+      { "name": "waec_result.pdf", "kindLabel": "PDF" },
+      { "name": "birth_certificate.pdf", "kindLabel": "PDF" }
+    ],
+    "extractionRun": true,
+    "facts": {
+      "applicantName": { "value": "Bello Chinasa Okafor", "confidence": "High", "source": "birth_certificate.pdf" },
+      "age": { "value": "16", "confidence": "High", "source": "birth_certificate.pdf" },
+      "country": { "value": "Nigeria", "confidence": "High", "source": "waec_result.pdf" },
+      "highestQualification": { "value": "West African Senior School Certificate (WASSCE)", "confidence": "High", "source": "waec_result.pdf" },
+      "subjectsPassedCount": { "value": "4", "confidence": "High", "source": "waec_result.pdf" },
+      "englishQualification": { "value": "WAEC English", "confidence": "Low", "source": "waec_result.pdf" },
+      "englishScore": { "value": "C5", "confidence": "Low", "source": "waec_result.pdf" },
+      "identityVerified": { "value": "Yes", "confidence": "High", "source": "birth_certificate.pdf" },
+      "writtenStatement": { "value": "Applicant is below minimum age requirement of 17. Age waiver required.", "confidence": "High", "source": "birth_certificate.pdf" }
+    },
+    "transcriptCertified": null,
+    "decisionLog": [],
+    "status": "Not Eligible",
+    "createdAt": "2026-07-05T14:15:00.000Z"
+  }
+]

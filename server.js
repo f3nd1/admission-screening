@@ -10,6 +10,187 @@ const HOST = process.env.HOST || "127.0.0.1";
 const PUBLIC_DIR = path.join(__dirname, "public");
 const MOCK_FILE = path.join(__dirname, "data", "mock-applicant.json");
 const REFERENCES_DIR = path.join(__dirname, "data", "reference-guides");
+const QUEUE_FILE = path.join(__dirname, "data", "queue.json");
+
+function readQueue() {
+  try {
+    return JSON.parse(fs.readFileSync(QUEUE_FILE, "utf8"));
+  } catch {
+    return [];
+  }
+}
+
+function writeQueue(queue) {
+  fs.writeFileSync(QUEUE_FILE, JSON.stringify(queue, null, 2));
+}
+
+function handleQueueGet(res) {
+  sendJson(res, 200, readQueue());
+}
+
+async function handleQueuePost(req, res) {
+  try {
+    const body = await parseBody(req);
+    if (!body.name || !body.courseId) {
+      sendJson(res, 400, { error: "name and courseId are required." });
+      return;
+    }
+    const queue = readQueue();
+    const applicant = {
+      id: "app-" + Date.now(),
+      name: body.name,
+      age: body.age || null,
+      country: body.country || null,
+      courseId: body.courseId,
+      notes: body.notes || "",
+      writtenStatement: body.writtenStatement || "",
+      files: body.files || [],
+      extractionRun: false,
+      facts: {},
+      transcriptCertified: null,
+      decisionLog: [],
+      status: "Pending",
+      createdAt: new Date().toISOString()
+    };
+    queue.push(applicant);
+    writeQueue(queue);
+    sendJson(res, 201, applicant);
+  } catch (error) {
+    sendJson(res, 500, { error: error.message });
+  }
+}
+
+async function handleQueuePut(req, res, id) {
+  try {
+    const body = await parseBody(req);
+    const queue = readQueue();
+    const idx = queue.findIndex((a) => a.id === id);
+    if (idx === -1) {
+      sendJson(res, 404, { error: "Applicant not found." });
+      return;
+    }
+    queue[idx] = { ...queue[idx], ...body, id };
+    writeQueue(queue);
+    sendJson(res, 200, queue[idx]);
+  } catch (error) {
+    sendJson(res, 500, { error: error.message });
+  }
+}
+
+async function handleQueueExtract(req, res, id) {
+  try {
+    const queue = readQueue();
+    const applicant = queue.find((a) => a.id === id);
+    if (!applicant) {
+      sendJson(res, 404, { error: "Applicant not found." });
+      return;
+    }
+    const body = await parseBody(req);
+    const aiEnabled = body.settings?.aiEnabled !== false;
+    const apiKey = body.settings?.openAIApiKey || process.env.OPENAI_API_KEY || null;
+    const model = body.settings?.model || process.env.OPENAI_MODEL || "gpt-4.1-mini";
+
+    const payload = {
+      applicant: { name: applicant.name, age: applicant.age, country: applicant.country, courseId: applicant.courseId },
+      applicationText: applicant.writtenStatement,
+      files: []
+    };
+
+    let extracted;
+    if (aiEnabled && apiKey) {
+      extracted = await extractApplicantFacts(payload, { apiKey, model, processedFiles: [] });
+    } else {
+      extracted = {
+        applicantName: applicant.name,
+        age: applicant.age,
+        country: applicant.country,
+        highestQualification: null,
+        subjectsPassedCount: null,
+        englishQualification: null,
+        englishScore: null,
+        identityVerified: null
+      };
+    }
+
+    const confidence = aiEnabled && apiKey ? "High" : "Manual entry";
+    const facts = {
+      applicantName: { value: String(extracted.applicantName || applicant.name || ""), confidence, source: "intake form" },
+      age: { value: String(extracted.age ?? applicant.age ?? ""), confidence, source: "intake form" },
+      country: { value: String(extracted.country || applicant.country || ""), confidence, source: "intake form" },
+      highestQualification: { value: String(extracted.highestQualification || ""), confidence: extracted.highestQualification ? confidence : "Low", source: "intake form" },
+      subjectsPassedCount: { value: String(extracted.subjectsPassedCount ?? ""), confidence: extracted.subjectsPassedCount != null ? confidence : "Low", source: "intake form" },
+      englishQualification: { value: String(extracted.englishQualification || ""), confidence: extracted.englishQualification ? confidence : "Low", source: "intake form" },
+      englishScore: { value: String(extracted.englishScore ?? ""), confidence: extracted.englishScore != null ? confidence : "Low", source: "intake form" },
+      identityVerified: { value: String(extracted.identityVerified || ""), confidence: extracted.identityVerified ? confidence : "Low", source: "intake form" },
+      writtenStatement: { value: applicant.writtenStatement || "", confidence: "Manual entry", source: "intake form" }
+    };
+
+    const idx = queue.findIndex((a) => a.id === id);
+    queue[idx] = { ...applicant, facts, extractionRun: true };
+    writeQueue(queue);
+    sendJson(res, 200, { ok: true, facts, usedAI: Boolean(aiEnabled && apiKey) });
+  } catch (error) {
+    sendJson(res, 500, { error: error.message });
+  }
+}
+
+async function handleQueueMer(req, res, id) {
+  try {
+    const queue = readQueue();
+    const applicant = queue.find((a) => a.id === id);
+    if (!applicant) {
+      sendJson(res, 404, { error: "Applicant not found." });
+      return;
+    }
+    const body = await parseBody(req);
+    const facts = body.facts || applicant.facts || {};
+
+    function fv(key) { return facts[key]?.value || null; }
+
+    const extracted = {
+      applicantName: fv("applicantName"),
+      age: fv("age") ? Number(fv("age")) : null,
+      country: fv("country"),
+      highestQualification: fv("highestQualification"),
+      subjectsPassedCount: fv("subjectsPassedCount") ? Number(fv("subjectsPassedCount")) : null,
+      englishQualification: fv("englishQualification"),
+      englishScore: fv("englishScore") ? parseFloat(fv("englishScore")) : null,
+      englishGrade: null,
+      workExperienceYears: null,
+      missingEvidence: [],
+      explanation: ""
+    };
+
+    const assessment = assessApplicant({
+      applicant: { name: applicant.name, age: applicant.age, country: applicant.country, courseId: applicant.courseId },
+      files: [],
+      extracted
+    });
+
+    const identityValue = (fv("identityVerified") || "").toLowerCase();
+    const identityStatus = identityValue === "yes" || identityValue === "true" || identityValue === "verified"
+      ? "pass" : identityValue === "" || identityValue === null ? "missing" : "fail";
+
+    const merResult = {
+      checks: {
+        ...assessment.checks,
+        identity: {
+          status: identityStatus,
+          basis: fv("identityVerified") || "Not provided",
+          reasons: identityStatus === "pass" ? ["Identity document verified"] : identityStatus === "missing" ? ["No identity document provided"] : ["Identity could not be verified"],
+          flags: []
+        }
+      },
+      recommendation: assessment.recommendation,
+      riskFlags: assessment.riskFlags || [],
+      course: assessment.course
+    };
+
+    sendJson(res, 200, merResult);
+  } catch (error) {
+    sendJson(res, 500, { error: error.message });
+  }
+}
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -286,6 +467,18 @@ const server = http.createServer(async (req, res) => {
   if (req.url === "/api/models" && req.method === "POST") return handleModels(req, res);
   if (req.url.startsWith("/api/reference-files") && req.method === "GET") return handleReferenceFiles(req, res);
   if (req.url === "/api/assess" && req.method === "POST") return handleAssess(req, res);
+
+  if (req.url === "/api/queue" && req.method === "GET") return handleQueueGet(res);
+  if (req.url === "/api/queue" && req.method === "POST") return handleQueuePost(req, res);
+
+  const queuePutMatch = req.url.match(/^\/api\/queue\/([^/]+)$/) ;
+  if (queuePutMatch && req.method === "PUT") return handleQueuePut(req, res, queuePutMatch[1]);
+
+  const queueExtractMatch = req.url.match(/^\/api\/queue\/([^/]+)\/extract$/);
+  if (queueExtractMatch && req.method === "POST") return handleQueueExtract(req, res, queueExtractMatch[1]);
+
+  const queueMerMatch = req.url.match(/^\/api\/queue\/([^/]+)\/mer$/);
+  if (queueMerMatch && req.method === "POST") return handleQueueMer(req, res, queueMerMatch[1]);
 
   serveStatic(req, res);
 });
