@@ -22,15 +22,15 @@ const state = {
 
 /* ── THEME ───────────────────────────────────────────── */
 function applyTheme(theme) {
-  document.documentElement.setAttribute("data-theme", theme || "default");
-  localStorage.setItem("ac_theme", theme || "default");
+  document.documentElement.setAttribute("data-theme", theme || "minecraft");
+  localStorage.setItem("ac_theme", theme || "minecraft");
   document.querySelectorAll(".theme-option").forEach(btn => {
-    btn.classList.toggle("active", btn.dataset.theme === (theme || "default"));
+    btn.classList.toggle("active", btn.dataset.theme === (theme || "minecraft"));
   });
 }
 
 function loadTheme() {
-  applyTheme(localStorage.getItem("ac_theme") || "default");
+  applyTheme(localStorage.getItem("ac_theme") || "minecraft");
 }
 
 /* ── HELPERS ─────────────────────────────────────────── */
@@ -157,7 +157,7 @@ function hideSettingsView() {
 
 function populateSettingsUI() {
   // Theme
-  applyTheme(localStorage.getItem("ac_theme") || "default");
+  applyTheme(localStorage.getItem("ac_theme") || "minecraft");
 
   // AI config
   const cfg = state.aiConfig;
