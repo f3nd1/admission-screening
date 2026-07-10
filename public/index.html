@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="default">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admission Eligibility Checker</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=Lora:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=Lora:wght@500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
@@ -17,12 +17,15 @@
     <p class="header-eyebrow">UNITED CERES COLLEGE</p>
     <h1 class="header-title">Admission Eligibility Checker</h1>
   </div>
-  <div class="header-staff">
-    <div class="header-staff-info">
-      <span class="header-staff-name">Felix Oking</span>
-      <span class="header-staff-role">Admissions Office</span>
+  <div class="header-right">
+    <button class="header-settings-btn" id="btnHeaderSettings" type="button" title="Settings">⚙</button>
+    <div class="header-staff">
+      <div class="header-staff-info">
+        <span class="header-staff-name">Felix Oking</span>
+        <span class="header-staff-role">Admissions Office</span>
+      </div>
+      <div class="header-avatar">FO</div>
     </div>
-    <div class="header-avatar">FO</div>
   </div>
 </header>
 
@@ -134,6 +137,177 @@
       </div>
 
     </div><!-- /workspace -->
+
+    <!-- ── SETTINGS VIEW ──────────────────────────────── -->
+    <div class="settings-view" id="settingsView" style="display:none">
+
+      <!-- Theme -->
+      <div class="card settings-card">
+        <h2 class="settings-section-title">Appearance</h2>
+        <p class="settings-section-desc">Choose the interface theme. The selection is saved in this browser and applied on every visit.</p>
+        <div class="theme-picker" id="themePicker">
+          <button class="theme-option" data-theme="default" type="button">
+            <div class="theme-swatch theme-swatch-default"></div>
+            <span class="theme-option-label">Default</span>
+            <span class="theme-option-desc">Navy, cream &amp; gold — the standard admissions look.</span>
+          </button>
+          <button class="theme-option" data-theme="minecraft" type="button">
+            <div class="theme-swatch theme-swatch-minecraft"></div>
+            <span class="theme-option-label">Minecraft</span>
+            <span class="theme-option-desc">Pixel aesthetic with grass-green, dirt-brown &amp; stone-grey.</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- AI Integration -->
+      <div class="card settings-card">
+        <h2 class="settings-section-title">AI Integration (OpenAI)</h2>
+        <p class="settings-section-desc">Controls extraction, assessment, and image OCR. When disabled, the offline rule-based engine is used throughout.</p>
+
+        <div class="settings-row">
+          <label class="toggle-label" for="aiEnabledToggle">
+            <input type="checkbox" id="aiEnabledToggle" class="toggle-input" />
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            <span class="toggle-text">Enable live AI calls</span>
+          </label>
+        </div>
+
+        <div class="settings-field-group">
+          <label class="settings-label" for="aiKeyInput">OpenAI API Key</label>
+          <div class="settings-key-row">
+            <input type="password" id="aiKeyInput" class="settings-input settings-key-input" placeholder="sk-…" autocomplete="off" />
+            <button class="settings-btn-outline" id="btnSaveKey" type="button">Save key</button>
+            <button class="settings-btn-ghost" id="btnClearKey" type="button">Clear key</button>
+          </div>
+          <p class="settings-help-text key-warning">⚠ Your API key is synced to Supabase so it follows you across devices. Because the workspace table uses an open access policy, anyone with your project's anon key can read it. Use a key scoped/limited to this prototype, and don't connect a shared Supabase project you don't control. Leave Supabase unconfigured to keep the key on this browser only.</p>
+        </div>
+
+        <div class="settings-field-group">
+          <button class="settings-btn-outline" id="btnFetchModels" type="button">Fetch available models</button>
+          <span class="settings-fetch-status" id="fetchModelsStatus"></span>
+        </div>
+
+        <div class="settings-model-grid">
+          <div class="settings-field-group">
+            <label class="settings-label" for="analysisModelSelect">Analysis model</label>
+            <select class="settings-input" id="analysisModelSelect"></select>
+            <p class="settings-help-text">Use a smarter model (e.g. gpt-5).</p>
+          </div>
+          <div class="settings-field-group">
+            <label class="settings-label" for="utilityModelSelect">Utility model</label>
+            <select class="settings-input" id="utilityModelSelect"></select>
+            <p class="settings-help-text">A cheaper model is fine (e.g. gpt-5-nano, gpt-4o-mini, or gpt-4o).</p>
+          </div>
+          <div class="settings-field-group">
+            <label class="settings-label" for="visionModelSelect">Image (vision) model</label>
+            <select class="settings-input" id="visionModelSelect"></select>
+            <p class="settings-help-text">Must be multimodal. Stronger models read scans more accurately at higher per-image cost (e.g. gpt-5-mini or gpt-4o); a cheaper model (e.g. gpt-5-nano) is fine for clean scans.</p>
+          </div>
+          <div class="settings-field-group">
+            <label class="settings-label" for="temperatureRange">Verdict consistency (temperature) — <span id="temperatureDisplay">0.10</span></label>
+            <div class="temperature-row">
+              <span class="temperature-label-lo">Highly consistent</span>
+              <input type="range" id="temperatureRange" class="temperature-slider" min="0" max="1" step="0.01" value="0.10" />
+              <span class="temperature-label-hi">Varied</span>
+            </div>
+            <p class="settings-help-text">Lower = same input gives the same result (recommended — default 0.10). Higher = more varied wording, less repeatable. Applies to assessment/extraction calls; generative prose keeps its own fixed setting.</p>
+          </div>
+        </div>
+
+        <div class="settings-save-row">
+          <button class="settings-btn-primary" id="btnSaveAiConfig" type="button">Save AI settings</button>
+          <span class="settings-save-status" id="aiSaveStatus"></span>
+        </div>
+      </div>
+
+      <!-- Changelog -->
+      <div class="card settings-card">
+        <h2 class="settings-section-title">What's New</h2>
+        <p class="settings-section-desc">Recent changes to the Admission Eligibility Checker on this branch.</p>
+        <div class="changelog">
+
+          <div class="changelog-group">
+            <div class="changelog-date">9 July 2026 · <code class="changelog-hash">266ad27</code></div>
+            <div class="changelog-title">Staff UI — applicant queue with 5-step review workflow</div>
+            <ul class="changelog-list">
+              <li>Replaced the single-form assessor with a full queue-based staff interface matching the design handoff spec.</li>
+              <li>Added a 300 px fixed sidebar showing all applicants with coloured status pills (Eligible / Conditional / Not Eligible / Pending).</li>
+              <li>Introduced five step-tabs per applicant: Intake, Extraction, MER Result, Decision, and Report.</li>
+              <li>New Applicant modal with file attachment chips.</li>
+              <li>File-backed applicant store at <code>data/queue.json</code>, seeded with three sample applicants.</li>
+              <li>New API routes: <code>GET/POST /api/queue</code>, <code>PUT /api/queue/:id</code>, <code>POST /api/queue/:id/extract</code>, <code>POST /api/queue/:id/mer</code>.</li>
+              <li>MER endpoint adds identity verification as a fourth rule check alongside age, academic, and English.</li>
+              <li>Added <code>infotech-elearning</code> course (Diploma in Information Technology) to <code>data/mer-rules.json</code>.</li>
+            </ul>
+          </div>
+
+          <div class="changelog-group">
+            <div class="changelog-date">30 June 2026 · <code class="changelog-hash">06bc308</code></div>
+            <div class="changelog-title">UI redesign — layout and visual polish</div>
+            <ul class="changelog-list">
+              <li>Fixed an oversized H1 that caused multi-line wrapping in the hero header.</li>
+              <li>Replaced the native OS file picker with a custom drag-and-drop zone with a visible upload icon.</li>
+              <li>Converted the navigation tabs from floating separate pills to a unified pill group bar.</li>
+              <li>Added a centred illustrated empty state for the results panel.</li>
+              <li>Introduced accent-coloured focus rings on all interactive elements.</li>
+              <li>Replaced the OS-default select arrow with a custom SVG chevron.</li>
+              <li>Changed secondary buttons from filled to outlined style.</li>
+            </ul>
+          </div>
+
+          <div class="changelog-group">
+            <div class="changelog-date">30 June 2026 · <code class="changelog-hash">5257553</code></div>
+            <div class="changelog-title">Add .gitignore</div>
+            <ul class="changelog-list">
+              <li>Excluded <code>node_modules/</code>, <code>package-lock.json</code>, and <code>.env</code> from version control.</li>
+            </ul>
+          </div>
+
+          <div class="changelog-group">
+            <div class="changelog-date">30 June 2026 · <code class="changelog-hash">ce3cbbc</code></div>
+            <div class="changelog-title">Admin settings, references, and document processing</div>
+            <ul class="changelog-list">
+              <li>Added AI Integration Settings tab with model selector and API key field.</li>
+              <li>Added Reference MD Files viewer tab for browsing the equivalency guide documents.</li>
+              <li>Added Courses &amp; MER Settings tab with live-edit form for course rules.</li>
+              <li>Introduced <code>lib/document-processing.js</code> for pre-processing evidence files before extraction.</li>
+            </ul>
+          </div>
+
+          <div class="changelog-group">
+            <div class="changelog-date">29 June 2026 · <code class="changelog-hash">facf1f9</code></div>
+            <div class="changelog-title">CLAUDE.md — document-processing layer and PDF notes</div>
+            <ul class="changelog-list">
+              <li>Documented the document-processing step in the architecture section.</li>
+              <li>Added a note about the hardcoded Python binary path in <code>scripts/extract_pdf_text.py</code> for non-macOS environments.</li>
+            </ul>
+          </div>
+
+          <div class="changelog-group">
+            <div class="changelog-date">29 June 2026 · <code class="changelog-hash">92f633e</code></div>
+            <div class="changelog-title">Add CLAUDE.md</div>
+            <ul class="changelog-list">
+              <li>Created initial <code>CLAUDE.md</code> documenting run command, environment variables, architecture pipeline, MER outcomes, academic pathways, and extension points.</li>
+            </ul>
+          </div>
+
+          <div class="changelog-group">
+            <div class="changelog-date">30 June 2026 · <code class="changelog-hash">d42b713</code></div>
+            <div class="changelog-title">Initial build — admission eligibility checker</div>
+            <ul class="changelog-list">
+              <li>Dependency-free Node.js HTTP server with vanilla HTML/CSS/JS frontend.</li>
+              <li>Applicant intake form with file upload.</li>
+              <li><code>lib/extractor.js</code> calling the OpenAI Responses API with structured JSON output.</li>
+              <li><code>lib/mer.js</code> deterministic rules engine evaluating academic qualification, English proficiency, and minimum age.</li>
+              <li><code>data/mer-rules.json</code> with thresholds, equivalency tables, and English benchmarks.</li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+
+    </div><!-- /settingsView -->
+
   </main>
 </div>
 

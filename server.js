@@ -11,6 +11,52 @@ const PUBLIC_DIR = path.join(__dirname, "public");
 const MOCK_FILE = path.join(__dirname, "data", "mock-applicant.json");
 const REFERENCES_DIR = path.join(__dirname, "data", "reference-guides");
 const QUEUE_FILE = path.join(__dirname, "data", "queue.json");
+const AI_CONFIG_FILE = path.join(__dirname, "data", "ai-config.json");
+
+const DEFAULT_AI_CONFIG = {
+  aiEnabled: false,
+  analysisModel: "gpt-4.1-mini",
+  utilityModel: "gpt-4o-mini",
+  visionModel: "gpt-4o",
+  temperature: 0.1
+};
+
+function readAiConfig() {
+  try {
+    return { ...DEFAULT_AI_CONFIG, ...JSON.parse(fs.readFileSync(AI_CONFIG_FILE, "utf8")) };
+  } catch {
+    return { ...DEFAULT_AI_CONFIG };
+  }
+}
+
+function writeAiConfig(cfg) {
+  fs.writeFileSync(AI_CONFIG_FILE, JSON.stringify(cfg, null, 2));
+}
+
+function handleAiConfigGet(res) {
+  const cfg = readAiConfig();
+  // Never expose the key server-side; key is browser-only
+  sendJson(res, 200, cfg);
+}
+
+async function handleAiConfigPut(req, res) {
+  try {
+    const body = await parseBody(req);
+    if (!body || typeof body !== "object") {
+      sendJson(res, 400, { error: "Invalid payload." });
+      return;
+    }
+    const allowed = ["aiEnabled", "analysisModel", "utilityModel", "visionModel", "temperature"];
+    const next = { ...readAiConfig() };
+    for (const key of allowed) {
+      if (key in body) next[key] = body[key];
+    }
+    writeAiConfig(next);
+    sendJson(res, 200, { ok: true, config: next });
+  } catch (error) {
+    sendJson(res, 500, { error: error.message });
+  }
+}
 
 function readQueue() {
   try {
@@ -86,9 +132,12 @@ async function handleQueueExtract(req, res, id) {
       return;
     }
     const body = await parseBody(req);
-    const aiEnabled = body.settings?.aiEnabled !== false;
+    const serverCfg = readAiConfig();
+    const aiEnabled = body.settings?.aiEnabled !== undefined ? body.settings.aiEnabled : serverCfg.aiEnabled;
     const apiKey = body.settings?.openAIApiKey || process.env.OPENAI_API_KEY || null;
-    const model = body.settings?.model || process.env.OPENAI_MODEL || "gpt-4.1-mini";
+    const analysisModel = body.settings?.analysisModel || serverCfg.analysisModel || process.env.OPENAI_MODEL || "gpt-4.1-mini";
+    const visionModel = body.settings?.visionModel || serverCfg.visionModel || analysisModel;
+    const temperature = body.settings?.temperature !== undefined ? body.settings.temperature : serverCfg.temperature;
 
     const payload = {
       applicant: { name: applicant.name, age: applicant.age, country: applicant.country, courseId: applicant.courseId },
@@ -98,7 +147,7 @@ async function handleQueueExtract(req, res, id) {
 
     let extracted;
     if (aiEnabled && apiKey) {
-      extracted = await extractApplicantFacts(payload, { apiKey, model, processedFiles: [] });
+      extracted = await extractApplicantFacts(payload, { apiKey, model: analysisModel, visionModel, temperature, processedFiles: [] });
     } else {
       extracted = {
         applicantName: applicant.name,
@@ -289,17 +338,23 @@ async function handleAssess(req, res) {
       return;
     }
 
-    const aiEnabled = payload.settings?.aiEnabled !== false;
+    const serverCfgForAssess = readAiConfig();
+    const aiEnabled = payload.settings?.aiEnabled !== undefined ? payload.settings.aiEnabled : serverCfgForAssess.aiEnabled;
     const apiKey = payload.settings?.openAIApiKey || process.env.OPENAI_API_KEY || null;
-    const model = payload.settings?.model || process.env.OPENAI_MODEL || "gpt-4.1-mini";
+    const analysisModel = payload.settings?.analysisModel || payload.settings?.model || serverCfgForAssess.analysisModel || process.env.OPENAI_MODEL || "gpt-4.1-mini";
+    const visionModel = payload.settings?.visionModel || serverCfgForAssess.visionModel || analysisModel;
+    const temperature = payload.settings?.temperature !== undefined ? payload.settings.temperature : serverCfgForAssess.temperature;
     const processedFiles = await processEvidenceFiles(payload.files || [], {
       apiKey: aiEnabled ? apiKey : null,
-      model
+      model: analysisModel,
+      visionModel: aiEnabled ? visionModel : null
     });
     const extracted = aiEnabled
       ? await extractApplicantFacts(payload, {
           apiKey,
-          model,
+          model: analysisModel,
+          visionModel,
+          temperature,
           processedFiles
         })
       : {
@@ -459,6 +514,8 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (req.url === "/api/ai-config" && req.method === "GET") return handleAiConfigGet(res);
+  if (req.url === "/api/ai-config" && req.method === "PUT") return handleAiConfigPut(req, res);
   if (req.url === "/api/config" && req.method === "GET") return handleConfig(res);
   if (req.url === "/api/rules" && req.method === "GET") return handleRules(res);
   if (req.url === "/api/mer-config" && req.method === "GET") return handleMerConfig(res);

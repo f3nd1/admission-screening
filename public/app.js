@@ -8,8 +8,30 @@ const state = {
   decisionDraft: {},    // applicant id → selected decision label
   extracting: null,
   showNewForm: false,
-  modalFiles: []
+  modalFiles: [],
+  showSettings: false,
+  aiConfig: {
+    aiEnabled: false,
+    analysisModel: "gpt-4.1-mini",
+    utilityModel: "gpt-4o-mini",
+    visionModel: "gpt-4o",
+    temperature: 0.1
+  },
+  fetchedModels: []
 };
+
+/* ── THEME ───────────────────────────────────────────── */
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme || "default");
+  localStorage.setItem("ac_theme", theme || "default");
+  document.querySelectorAll(".theme-option").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.theme === (theme || "default"));
+  });
+}
+
+function loadTheme() {
+  applyTheme(localStorage.getItem("ac_theme") || "default");
+}
 
 /* ── HELPERS ─────────────────────────────────────────── */
 function el(id) { return document.getElementById(id); }
@@ -86,7 +108,7 @@ async function saveApplicant(applicant) {
 }
 
 async function runExtraction(id) {
-  const data = await api("POST", `/api/queue/${id}/extract`, {});
+  const data = await api("POST", `/api/queue/${id}/extract`, { settings: getAiCallSettings() });
   return data;
 }
 
@@ -99,6 +121,98 @@ async function createApplicant(body) {
   const data = await api("POST", "/api/queue", body);
   state.queue.push(data);
   return data;
+}
+
+async function loadAiConfig() {
+  const data = await api("GET", "/api/ai-config");
+  state.aiConfig = { ...state.aiConfig, ...data };
+}
+
+async function saveAiConfig(patch) {
+  const data = await api("PUT", "/api/ai-config", patch);
+  if (data.ok) state.aiConfig = { ...state.aiConfig, ...data.config };
+  return data;
+}
+
+/* ── SETTINGS PANEL ──────────────────────────────────── */
+function showSettingsView() {
+  state.showSettings = true;
+  el("settingsView").style.display = "block";
+  el("workspace").style.display = "none";
+  el("mainEmpty").style.display = "none";
+  el("btnHeaderSettings").classList.add("active");
+  populateSettingsUI();
+}
+
+function hideSettingsView() {
+  state.showSettings = false;
+  el("settingsView").style.display = "none";
+  el("btnHeaderSettings").classList.remove("active");
+  if (state.selectedId) {
+    el("workspace").style.display = "block";
+  } else {
+    el("mainEmpty").style.display = "flex";
+  }
+}
+
+function populateSettingsUI() {
+  // Theme
+  applyTheme(localStorage.getItem("ac_theme") || "default");
+
+  // AI config
+  const cfg = state.aiConfig;
+  el("aiEnabledToggle").checked = Boolean(cfg.aiEnabled);
+  el("temperatureRange").value = cfg.temperature !== undefined ? cfg.temperature : 0.1;
+  el("temperatureDisplay").textContent = Number(el("temperatureRange").value).toFixed(2);
+
+  const storedKey = localStorage.getItem("ac_openai_key") || "";
+  el("aiKeyInput").value = storedKey ? "••••••••" : "";
+
+  populateModelDropdowns(state.fetchedModels);
+}
+
+function populateModelDropdowns(models) {
+  const cfg = state.aiConfig;
+  const selIds = ["analysisModelSelect", "utilityModelSelect", "visionModelSelect"];
+  const cfgKeys = ["analysisModel", "utilityModel", "visionModel"];
+
+  selIds.forEach((selId, i) => {
+    const sel = el(selId);
+    const current = cfg[cfgKeys[i]];
+    if (models.length > 0) {
+      sel.innerHTML = models
+        .filter(m => m.id.startsWith("gpt"))
+        .sort((a, b) => a.id.localeCompare(b.id))
+        .map(m => `<option value="${esc(m.id)}" ${m.id === current ? "selected" : ""}>${esc(m.id)}</option>`)
+        .join("");
+    } else {
+      // Show the saved value as a placeholder option
+      sel.innerHTML = `<option value="${esc(current)}">${esc(current)}</option>`;
+    }
+  });
+}
+
+function getAiSettingsFromUI() {
+  return {
+    aiEnabled: el("aiEnabledToggle").checked,
+    analysisModel: el("analysisModelSelect").value,
+    utilityModel: el("utilityModelSelect").value,
+    visionModel: el("visionModelSelect").value,
+    temperature: parseFloat(el("temperatureRange").value)
+  };
+}
+
+/* Returns the AI options object to pass to the extract endpoint */
+function getAiCallSettings() {
+  const key = localStorage.getItem("ac_openai_key") || "";
+  return {
+    aiEnabled: state.aiConfig.aiEnabled,
+    openAIApiKey: key || undefined,
+    analysisModel: state.aiConfig.analysisModel,
+    utilityModel: state.aiConfig.utilityModel,
+    visionModel: state.aiConfig.visionModel,
+    temperature: state.aiConfig.temperature
+  };
 }
 
 /* ── RENDER SIDEBAR ──────────────────────────────────── */
@@ -136,6 +250,7 @@ function renderContextBar(a) {
 function selectApplicant(id) {
   state.selectedId = id;
   state.step = 0;
+  if (state.showSettings) hideSettingsView();
   renderSidebar();
   el("mainEmpty").style.display = "none";
   el("workspace").style.display = "block";
@@ -533,7 +648,8 @@ function esc(str) {
 
 /* ── INIT ────────────────────────────────────────────── */
 async function init() {
-  await Promise.all([loadQueue(), loadRules()]);
+  loadTheme();
+  await Promise.all([loadQueue(), loadRules(), loadAiConfig()]);
   renderSidebar();
 
   // Tab navigation
@@ -551,6 +667,76 @@ async function init() {
   el("modalScrim").addEventListener("click", e => { if (e.target === el("modalScrim")) closeModal(); });
   el("btnModalAdd").addEventListener("click", submitNewApplicant);
   el("btnAttach").addEventListener("click", attachMockFile);
+
+  // ── SETTINGS ──────────────────────────────────────────
+  el("btnHeaderSettings").addEventListener("click", () => {
+    if (state.showSettings) hideSettingsView();
+    else showSettingsView();
+  });
+
+  // Theme picker
+  document.querySelectorAll(".theme-option").forEach(btn => {
+    btn.addEventListener("click", () => applyTheme(btn.dataset.theme));
+  });
+
+  // AI toggle
+  el("aiEnabledToggle").addEventListener("change", () => {
+    state.aiConfig.aiEnabled = el("aiEnabledToggle").checked;
+  });
+
+  // Temperature slider
+  el("temperatureRange").addEventListener("input", () => {
+    el("temperatureDisplay").textContent = Number(el("temperatureRange").value).toFixed(2);
+  });
+
+  // Save key
+  el("btnSaveKey").addEventListener("click", () => {
+    const key = el("aiKeyInput").value.trim();
+    if (key && !key.startsWith("••")) {
+      localStorage.setItem("ac_openai_key", key);
+      el("aiKeyInput").value = "••••••••";
+    }
+  });
+
+  // Clear key
+  el("btnClearKey").addEventListener("click", () => {
+    localStorage.removeItem("ac_openai_key");
+    el("aiKeyInput").value = "";
+  });
+
+  // Fetch models
+  el("btnFetchModels").addEventListener("click", async () => {
+    const key = localStorage.getItem("ac_openai_key") || el("aiKeyInput").value.trim();
+    if (!key || key.startsWith("••")) {
+      el("fetchModelsStatus").textContent = "Enter and save a key first.";
+      return;
+    }
+    el("fetchModelsStatus").textContent = "Fetching…";
+    try {
+      const data = await api("POST", "/api/models", { openAIApiKey: key });
+      if (data.data && Array.isArray(data.data)) {
+        state.fetchedModels = data.data;
+        populateModelDropdowns(data.data);
+        el("fetchModelsStatus").textContent = `${data.data.filter(m => m.id.startsWith("gpt")).length} models loaded.`;
+      } else {
+        el("fetchModelsStatus").textContent = data.error || "Unexpected response.";
+      }
+    } catch (e) {
+      el("fetchModelsStatus").textContent = "Failed: " + e.message;
+    }
+  });
+
+  // Save AI settings
+  el("btnSaveAiConfig").addEventListener("click", async () => {
+    const patch = getAiSettingsFromUI();
+    const result = await saveAiConfig(patch);
+    if (result.ok) {
+      el("aiSaveStatus").textContent = "Saved.";
+      setTimeout(() => { el("aiSaveStatus").textContent = ""; }, 2000);
+    } else {
+      el("aiSaveStatus").textContent = result.error || "Save failed.";
+    }
+  });
 
   // Extraction
   el("btnRunExtraction").addEventListener("click", async () => {
