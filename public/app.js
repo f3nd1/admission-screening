@@ -87,7 +87,7 @@ function confidenceClass(c) {
 async function api(method, url, body) {
   const opts = { method, headers: { "Content-Type": "application/json" } };
   if (body !== undefined) opts.body = JSON.stringify(body);
-  const res = await fetch(url, opts);
+  const res = await fetch(url.replace(/^\//, ""), opts);
   return res.json();
 }
 
